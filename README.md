@@ -190,6 +190,48 @@ pipeline {
 
 
 ```
+````
+pipeline {
+    agent any
+    tools {
+        maven 'maven-tool'
+    }
+
+    stages {
+        stage('git-pull') {
+            steps {
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/HemaTate/Project-Insure-Me.git']])
+            }
+        }
+        stage('Code-Build') {
+            steps {
+               sh 'mvn clean package'
+            }
+        }
+        stage('Containerize the application'){
+            steps { 
+               echo 'Creating Docker image'
+               sh "docker build -t hematate/insure:v1 ."
+            }
+        }
+        stage('Docker Push') {
+    	agent any
+          steps {
+       	withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+            	sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+                sh 'docker push hematate/insure:v1'
+        }
+      }
+    }
+    
+        stage('deploy with docker'){
+            steps { 
+               sh 'docker run -itd -p8089:80 hematate/insure:v1'
+            }
+        }
+    }
+}
+````
 
 Build Pipeline:
 
@@ -199,3 +241,7 @@ Build Pipeline:
 **Final Output: node ip:container port**
 
 ![OUTPUT](https://github.com/kajol2699/Project-InsureMe/assets/130952932/237d1bd2-97df-4451-a69c-11e6c3ef6d12)
+
+
+
+
