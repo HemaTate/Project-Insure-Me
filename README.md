@@ -226,7 +226,7 @@ pipeline {
     
         stage('deploy with docker'){
             steps { 
-               sh 'docker run -itd -p8089:80 hematate/insure:v1'
+               sh 'docker run -itd -p8089:8081 hematate/insure:v1'
             }
         }
     }
